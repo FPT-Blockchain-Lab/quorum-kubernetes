@@ -34,6 +34,37 @@ subjects:
   namespace: {{ .Release.Namespace }}
 
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "blockscout.fullname" . }}-postgres-storage
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ include "blockscout.fullname" . }}-postgres-storage
+  capacity:
+    storage: "{{ .Values.storage.sizeLimit }}"
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/{{ include "blockscout.fullname" . }}"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name:  {{ include "blockscout.fullname" . }}-postgres-pvc
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ include "blockscout.fullname" . }}-postgres-storage
+  resources:
+    requests:
+      storage: "{{ .Values.storage.pvcSizeLimit }}"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
