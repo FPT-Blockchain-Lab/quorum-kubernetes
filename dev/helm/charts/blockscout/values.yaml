@@ -15,9 +15,8 @@ postgresql:
   postgresqlPassword: postgres
   initdbUser: postgres
   initdbPassword: postgres
-  extendedConf:
-    volumePermissions:
-      enabled: true
+  volumePermissions:
+    enabled: true
   enabled: true
 
 blockscout: # cpu dependent
