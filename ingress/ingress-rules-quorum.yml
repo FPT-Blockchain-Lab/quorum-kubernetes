@@ -39,3 +39,10 @@ spec:
             name: kibana-kibana
             port:
               number: 5601
+      - path: /blockscout
+        pathType: Prefix
+        backend:
+          service:
+            name: blockscout
+            port:
+              number: 4000
