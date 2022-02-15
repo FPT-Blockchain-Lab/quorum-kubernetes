@@ -54,7 +54,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name:  {{ include "blockscout.fullname" . }}-postgres-pvc
+  name:  data-blockscout-postgresql-0
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
