@@ -338,7 +338,7 @@ spec:
             --nodiscover --ipcdisable \
             --nat extip:$POD_IP \
             --verbosity {{ .Values.node.quorum.log.verbosity }} \
-            --mine --miner.threads {{ .Values.node.quorum.miner.threads }} --miner.etherbase 0xa63e527A5e1F5eFe2EF8e46D63A5C17528A1F39e --miner.gasprice 0 --emitcheckpoints \
+            --mine --miner.threads {{ .Values.node.quorum.miner.threads }} --miner.etherbase 0xfe3b557e8fb62b89f4916b721be55ceb828dbd73 --miner.gasprice 0 --emitcheckpoints \
             --syncmode full --nousb \
             --metrics --pprof --pprof.addr {{ .Values.node.quorum.metrics.pprofaddr | quote }} --pprof.port {{ .Values.node.quorum.metrics.pprofport }} \
             --networkid {{ .Values.node.quorum.networkId }} \
