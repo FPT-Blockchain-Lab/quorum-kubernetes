@@ -333,7 +333,7 @@ spec:
             cp {{ .Values.node.quorum.keysPath }}/nodekey {{ .Values.node.quorum.dataPath }}/geth/nodekey
             cp {{ .Values.node.quorum.keysPath }}/keystore {{ .Values.node.quorum.dataPath }}/keystore
             cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
-            cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/permission-config.json
+            # cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/permission-config.json
 
             echo "Day la consensus"
             echo $QUORUM_CONSENSUS
