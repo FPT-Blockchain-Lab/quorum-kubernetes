@@ -100,7 +100,7 @@ spec:
                 c=$(($f + 1));
                 # /opt/istanbul-tools/bin/bootnode -nodekey /generated-config/$f/nodekey -writeaddress > /generated-config/$f/nodekey.pub
                 echo -ne $(cat $currentdir/validator$f/nodekey.pub) > $currentdir/validator$f/enode
-                kubectl create secret generic goquorum-node-validator-$c-keys --namespace {{ .Release.Namespace }} --from-file=nodekey=$currentdir/validator$f/nodekey --from-file=nodekey.pub=$currentdir/validator$f/nodekey.pub --from-file=enode=$currentdir/validator$f/enode 
+                kubectl create secret generic goquorum-node-validator-$c-keys --namespace {{ .Release.Namespace }} --from-file=nodekey=$currentdir/validator$f/nodekey --from-file=nodekey.pub=$currentdir/validator$f/nodekey.pub --from-file=enode=$currentdir/validator$f/enode --from-file=keystore=$currentdir/validator$f/accountKeystore 
                 
                 # add to the static-nodes
                 pubkey=$(cat $currentdir/validator$f/nodekey.pub )
