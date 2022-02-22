@@ -351,7 +351,6 @@ spec:
             --rpcport 8545 \
             --rpcapi admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,clique \
             --port {{ .Values.node.quorum.p2p.port }} \
-            --unlock 0 \
             --allow-insecure-unlock \
             --nousb \
             --syncmode full --mine --miner.gasprice 1
