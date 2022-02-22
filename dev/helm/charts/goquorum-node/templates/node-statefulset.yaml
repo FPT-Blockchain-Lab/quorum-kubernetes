@@ -333,6 +333,8 @@ spec:
             cp {{ .Values.node.quorum.keysPath }}/nodekey {{ .Values.node.quorum.dataPath }}/geth/nodekey
             cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
 
+            echo "Day la consensus"
+            echo $QUORUM_CONSENSUS
             geth \
             --identity {{ include "goquorum-node.fullname" . }} \
             --datadir {{ .Values.node.quorum.dataPath }} \
