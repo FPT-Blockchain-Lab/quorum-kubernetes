@@ -84,8 +84,12 @@ spec:
 
               mkdir /generated-config/ && cd /generated-config/
               echo "Creating config ..."
-              /opt/istanbul-tools/bin/istanbul setup --num {{ .Values.rawGenesisConfig.blockchain.nodes.count }} --nodes --quorum --save --verbose
-              kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-genesis --from-file=genesis.json=/generated-config/genesis.json
+              npx quorum-genesis-tool --consensus clique --chainID 1337 --blockperiod 5 --requestTimeout 10 --epochLength 30000 --difficulty 1 --gasLimit '0xFFFFFF' --coinbase '0x0000000000000000000000000000000000000000' --validators {{ .Values.rawGenesisConfig.blockchain.nodes.count }} --members 0 --bootnodes 0 --outputPath ./
+              cd *
+              currentdir=$(pwd)
+
+              # /opt/istanbul-tools/bin/istanbul setup --num {{ .Values.rawGenesisConfig.blockchain.nodes.count }} --nodes --quorum --save --verbose
+              kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-genesis --from-file=genesis.json=$(pwd)/goQuorum/genesis.json
 
               # create the static-nodes with proper dns names for the quorum nodes  
               echo "[" > /generated-config/static-nodes.json
@@ -94,13 +98,13 @@ spec:
               echo "Creating validator keys ..."
               for f in `seq 0 $(( {{ .Values.rawGenesisConfig.blockchain.nodes.count  }} -1 ))`; do 
                 c=$(($f + 1));
-                /opt/istanbul-tools/bin/bootnode -nodekey /generated-config/$f/nodekey -writeaddress > /generated-config/$f/nodekey.pub
-                echo -ne $(cat /generated-config/$f/nodekey.pub) > /generated-config/$f/enode
-                kubectl create secret generic goquorum-node-validator-$c-keys --namespace {{ .Release.Namespace }} --from-file=nodekey=/generated-config/$f/nodekey --from-file=nodekey.pub=/generated-config/$f/nodekey.pub --from-file=enode=/generated-config/$f/enode 
+                # /opt/istanbul-tools/bin/bootnode -nodekey /generated-config/$f/nodekey -writeaddress > /generated-config/$f/nodekey.pub
+                echo -ne $(cat $currentdir/validator$f/nodekey.pub) > $currentdir/validator$f/enode
+                kubectl create secret generic goquorum-node-validator-$c-keys --namespace {{ .Release.Namespace }} --from-file=nodekey=$currentdir/validator$f/nodekey --from-file=nodekey.pub=$currentdir/validator$f/nodekey.pub --from-file=enode=$currentdir/validator$f/enode 
                 
                 # add to the static-nodes
-                pubkey=$(cat /generated-config/$f/nodekey.pub )
-                echo ",\"enode://$pubkey@goquorum-node-validator-$c-0.goquorum-node-validator-$c.{{ .Release.Namespace }}.svc.cluster.local:30303?discport=0\"" >> /generated-config/static-nodes.json
+                pubkey=$(cat $currentdir/validator$f/nodekey.pub )
+                echo ",\"enode://$pubkey@goquorum-node-validator-$c-0.goquorum-node-validator-$c.{{ .Release.Namespace }}.svc.cluster.local:30303?discport=0&raftport=53000\"" >> /generated-config/static-nodes.json
               done
 
               echo "]" >> /generated-config/static-nodes.json
