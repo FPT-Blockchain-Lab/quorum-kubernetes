@@ -87,7 +87,10 @@ spec:
               npx quorum-genesis-tool --consensus clique --chainID 10 --blockperiod 5 --requestTimeout 10 --epochLength 30000 --difficulty 1 --gasLimit '0xFFFFFF' --coinbase '0x0000000000000000000000000000000000000000' --validators {{ .Values.rawGenesisConfig.blockchain.nodes.count }} --members 0 --bootnodes 0 --outputPath ./
               cd *
               currentdir=$(pwd)
-
+              extradata=$(cat $(pwd)/validator0/accountAddress | cut -c 3-)
+              extradata+=$(cat $(pwd)/validator1/accountAddress | cut -c 3-)
+              extradata+=$(cat $(pwd)/validator2/accountAddress | cut -c 3-)
+              extradata+=$(cat $(pwd)/validator3/accountAddress | cut -c 3-)
               # /opt/istanbul-tools/bin/istanbul setup --num {{ .Values.rawGenesisConfig.blockchain.nodes.count }} --nodes --quorum --save --verbose
 
               cat <<EOF > /generated-config/genesis.json
@@ -131,7 +134,7 @@ spec:
                     }
                   },
                   "difficulty": "0x0",
-                  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000a9e871f88cbeb870d32d88e4221dcfbd36dd635a0638e1574728b6d862dd5d3a3e0942c3be47d9960fbdc686b912d7722dc86510934589e0aaf3b55a9186eb3d20cbd1f5f992a950d808c4495153abd5ae9bc6cd5145e67fbd1887a5145271fd182f0ee7ca843569e3427144cead5e4d5999a3d0ccf92b8ecc71c7546429a13796cf1bf9228bff213e7ae9cced9d02e382b34818e88b88a309c7fe71e65f419d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000$${extradata}0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                   "gasLimit": "0xE0000000",
                   "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
                   "nonce": "0x0",

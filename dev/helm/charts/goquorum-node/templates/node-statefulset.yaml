@@ -338,6 +338,7 @@ spec:
 
             echo "Day la consensus"
             echo $QUORUM_CONSENSUS
+
             geth \
             --identity {{ include "goquorum-node.fullname" . }} \
             --datadir {{ .Values.node.quorum.dataPath }} \
@@ -345,6 +346,11 @@ spec:
             --nodiscover \
             --verbosity 5 \
             --networkid 10 \
+            --ws \
+            --ws.addr 0.0.0.0 \
+            --ws.port 8546 \
+            --ws.api admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,clique \
+            --ws.origins "*" \
             --rpc \
             --rpccorsdomain "*" \
             --rpcvhosts "*" \
@@ -352,9 +358,10 @@ spec:
             --rpcport 8545 \
             --rpcapi admin,eth,debug,miner,net,shh,txpool,personal,web3,quorum,clique \
             --port {{ .Values.node.quorum.p2p.port }} \
+            --unlock 0 \
             --allow-insecure-unlock \
             --nousb \
-            --syncmode full --mine --miner.gasprice 1
+            --syncmode full --mine --miner.threads 1
 
       volumes:
       - name: quorum-keys
