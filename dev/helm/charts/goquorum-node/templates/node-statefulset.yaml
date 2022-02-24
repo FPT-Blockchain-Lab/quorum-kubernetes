@@ -278,7 +278,7 @@ spec:
           - name: QUORUM_NETWORK_ID
             value: "{{ .Values.node.quorum.networkId }}"
           - name: QUORUM_CONSENSUS
-            value: istanbul
+            value: clique
         {{- if .Values.nodeFlags.privacy }}
           - name: QUORUM_PTM_URL
             value: "http://{{ include "goquorum-node.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.node.tessera.q2tport }}"
@@ -332,16 +332,23 @@ spec:
             echo 'transaction manager is up';
           {{- end }}
 
+            mkdir -p {{ .Values.node.quorum.dataPath }}/keystore
             geth --datadir={{ .Values.node.quorum.dataPath }} init {{ .Values.node.quorum.genesisFilePath }}
             cp {{ .Values.node.quorum.keysPath }}/nodekey {{ .Values.node.quorum.dataPath }}/geth/nodekey
-            cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
-
+            cp {{ .Values.node.quorum.keysPath }}/keystore {{ .Values.node.quorum.dataPath }}/keystore/
+            echo '[]' > {{ .Values.node.quorum.dataPath }}/disallowed-nodes.json
+            echo '' > /data/quorum/passwords.txt
+            
+            cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/static-nodes.json
+            cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/permissioned-nodes.json
+            
             geth \
             --datadir {{ .Values.node.quorum.dataPath }} \
-            --nodiscover --ipcdisable \
+            --nodiscover \
+            --permissioned \
             --nat extip:$POD_IP \
             --verbosity {{ .Values.node.quorum.log.verbosity }} \
-            --istanbul.blockperiod {{ .Values.node.quorum.miner.blockPeriod }} --mine --miner.threads {{ .Values.node.quorum.miner.threads }} --miner.gasprice 0 --emitcheckpoints \
+            --mine --miner.threads {{ .Values.node.quorum.miner.threads }} --miner.gasprice 0 --emitcheckpoints \
             --syncmode full --nousb \
             --metrics --pprof --pprof.addr {{ .Values.node.quorum.metrics.pprofaddr | quote }} --pprof.port {{ .Values.node.quorum.metrics.pprofport }} \
             --networkid {{ .Values.node.quorum.networkId }} \

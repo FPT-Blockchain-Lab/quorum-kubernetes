@@ -22,7 +22,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: goquorum-node-member-1
+            name: goquorum-node-validator-1
             port:
               number: 8545
       - path: /
@@ -32,10 +32,17 @@ spec:
             name: quorum-monitoring-monitoring-grafana
             port:
               number: 3000
-      - path: /kibana
+      - path: /explorer
         pathType: Prefix
         backend:
           service:
-            name: kibana-kibana
+            name: blockscout
             port:
-              number: 5601
+              number: 4000
+      # - path: /kibana
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: kibana-kibana
+      #       port:
+      #         number: 5601
