@@ -2,7 +2,7 @@
 rawGenesisConfig:
   genesis:
     config:
-      chainId: 1337
+      chainId: 10
       algorithm:
         consensus: qbft # choose from: ibft | qbft | raft | clique
         blockperiodseconds: 10

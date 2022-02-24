@@ -3,7 +3,7 @@
 image:
   quorum:
     repository: quorumengineering/quorum
-    tag: latest
+    tag: 21.7.1
   tessera:
     repository: quorumengineering/tessera
     tag: latest
@@ -57,13 +57,13 @@ node:
       port: 8545
       corsDomain: "*"
       vHosts: "*"
-      api: "admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,istanbul"
+      api: "admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,clique"
       authenticationEnabled: false
     ws:
       enabled: true
       addr: "0.0.0.0"
       port: 8546
-      api: "admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,istanbul"
+      api: "admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,clique"
       origins: "*"
       authenticationEnabled: false
     graphql:
