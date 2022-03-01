@@ -337,15 +337,10 @@ spec:
             cp {{ .Values.node.quorum.keysPath }}/nodekey {{ .Values.node.quorum.dataPath }}/geth/nodekey
             cp {{ .Values.node.quorum.keysPath }}/keystore {{ .Values.node.quorum.dataPath }}/keystore/
             echo '[]' > {{ .Values.node.quorum.dataPath }}/disallowed-nodes.json
+            echo '' > /data/quorum/passwords.txt
             
             cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/static-nodes.json
             cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/permissioned-nodes.json
-            # rm {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
-            # rm {{ .Values.node.quorum.dataPath }}/geth/permissioned-nodes.json
-            # cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/static-nodes.json
-            # cp /config/static/static-nodes.json {{ .Values.node.quorum.dataPath }}/geth/permissioned-nodes.json
-            rm /data/quorum/permission-config.json
-            echo '' > /data/quorum/passwords.txt
             
             geth \
             --datadir {{ .Values.node.quorum.dataPath }} \
