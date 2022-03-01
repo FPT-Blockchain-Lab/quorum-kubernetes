@@ -82,16 +82,16 @@ spec:
           args:
             - |
               echo "Creating config ..."
-              # FOLDER_PATH=$(npx --yes --quiet quorum-genesis-tool@latest --consensus {{ .Values.rawGenesisConfig.genesis.config.algorithm.consensus }} {{ if .Values.rawGenesisConfig.blockchain.nodes.generate }} --validators {{ .Values.rawGenesisConfig.blockchain.nodes.count }} {{ else }} --validators 0 {{ end }} --members 0 --bootnodes 0 --chainID {{ .Values.rawGenesisConfig.genesis.config.chainId }} --blockperiod {{ .Values.rawGenesisConfig.genesis.config.algorithm.blockperiodseconds }} --epochLength {{ .Values.rawGenesisConfig.genesis.config.algorithm.epochlength }} --requestTimeout {{ .Values.rawGenesisConfig.genesis.config.algorithm.requesttimeoutseconds }} --difficulty {{ .Values.rawGenesisConfig.genesis.difficulty }} --gasLimit {{ .Values.rawGenesisConfig.genesis.gasLimit }} --coinbase {{ .Values.rawGenesisConfig.genesis.coinbase }} --outputPath /generated-config | tail -1 | sed -e "s/^Artifacts in folder: //")
-              FOLDER_PATH="/genesis-data"
-              mkdir -p /generated-config
-              mkdir -p /genesis-data/goQuorum
-              mkdir -p /genesis-data/validator1
-              mkdir -p /genesis-data/validator2
-              mkdir -p /genesis-data/validator3
-              mkdir -p /genesis-data/validator4
+              FOLDER_PATH=$(npx --yes --quiet quorum-genesis-tool@latest --consensus {{ .Values.rawGenesisConfig.genesis.config.algorithm.consensus }} {{ if .Values.rawGenesisConfig.blockchain.nodes.generate }} --validators {{ .Values.rawGenesisConfig.blockchain.nodes.count }} {{ else }} --validators 0 {{ end }} --members 0 --bootnodes 0 --chainID {{ .Values.rawGenesisConfig.genesis.config.chainId }} --blockperiod {{ .Values.rawGenesisConfig.genesis.config.algorithm.blockperiodseconds }} --epochLength {{ .Values.rawGenesisConfig.genesis.config.algorithm.epochlength }} --requestTimeout {{ .Values.rawGenesisConfig.genesis.config.algorithm.requesttimeoutseconds }} --difficulty {{ .Values.rawGenesisConfig.genesis.difficulty }} --gasLimit {{ .Values.rawGenesisConfig.genesis.gasLimit }} --coinbase {{ .Values.rawGenesisConfig.genesis.coinbase }} --outputPath /generated-config | tail -1 | sed -e "s/^Artifacts in folder: //")
+
               echo $FOLDER_PATH
 
+              for f in $(find $FOLDER_PATH -type d -iname "validator*" -exec basename {} \;); do
+                extraData+=$(cat $FOLDER_PATH/${f}/accountAddress | cut -c 3-)
+                allocData+="\"$$(cat $FOLDER_PATH/${f}/accountAddress)\": {\"balance\": \"1000000000000000000000000000\"},"
+              done
+              
+              rm $FOLDER_PATH/goQuorum/genesis.json
               cat <<EOF > $FOLDER_PATH/goQuorum/genesis.json
                 {
                   "coinbase": "0x0000000000000000000000000000000000000000",
@@ -101,7 +101,7 @@ spec:
                     "constantinopleBlock":0,
                     "petersburgBlock": 0,
                     "istanbulBlock": 0,
-                    "chainId": 10,
+                    "chainId": {{ .Values.rawGenesisConfig.genesis.config.chainId }},
                     "eip150Block": 0,
                     "eip155Block": 0,
                     "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -116,12 +116,12 @@ spec:
                       }
                     ],
                     "clique": {
-                      "period": 15,
-                      "epoch": 30000
+                      "period": {{ .Values.rawGenesisConfig.genesis.config.algorithm.blockperiodseconds }},
+                      "epoch": {{ .Values.rawGenesisConfig.genesis.config.algorithm.epochlength }}
                     }
                   },
                   "difficulty": "0x0",
-                  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000b9bc1ed557242f70df3b316ba51ab733772eb86875125fe554c92cb99f99578ad9125d64c46d18ef918227407ba4b9a656bdd9e9d9b1b86b60a18d20ea74ea0012ad1a8c0f1cade86406b64cb32f203d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000$$(echo $extraData)0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
                   "gasLimit": "0xE0000000",
                   "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
                   "nonce": "0x0",
@@ -130,21 +130,11 @@ spec:
                   "number": "0x0",
                   "gasUsed": "0x0",
                   "alloc": {
-                    "0xb9bc1ed557242f70df3b316ba51ab733772eb868": {
-                      "balance": "1000000000000000000000000000"
-                    },
-                    "0x75125fe554c92cb99f99578ad9125d64c46d18ef": {
-                      "balance": "1000000000000000000000000000"
-                    },
-                    "0x918227407ba4b9a656bdd9e9d9b1b86b60a18d20": {
-                      "balance": "1000000000000000000000000000"
-                    },
-                    "0xea74ea0012ad1a8c0f1cade86406b64cb32f203d": {
-                      "balance": "1000000000000000000000000000"
-                    }
+                    $$(echo $allocData | sed 's/\,$//')
                   }
                 }
               EOF
+              
               echo "Creating genesis configmap in k8s ..."
               kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-genesis --from-file=genesis.json=$FOLDER_PATH/goQuorum/genesis.json
 
@@ -152,52 +142,11 @@ spec:
               echo "[" > /generated-config/static-nodes.json
               i=1
               echo "Creating validator keys ..."
-
-              cat <<EOF > $FOLDER_PATH/validator1/nodekey
-              42b76d1719df19851b87f4a8ca17232cd65d6e06efd8a5ac8da1d07836462c66
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator1/nodekey.pub
-              7fa7970822491970486ad4affeba18138a0a731e77e0b0dc4904e49c4b20a4f89825b4b088694ecce6262c6075181dbab3fdd29bc9a71b4c0e2574a6f82037b4
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator1/accountKeystore
-              {"version":3,"id":"c7ae8e8a-5c29-4100-af4f-0d6c5c47ccaa","address":"b9bc1ed557242f70df3b316ba51ab733772eb868","crypto":{"ciphertext":"efa866c3782c049f7e0c47b5efad5a6b4e8941d9f19978f022776bad12215167","cipherparams":{"iv":"0afa9a20a545a0be191d84768466f733"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"dc3e4f85d69ac256129e9721be040066bc84cd48ecfdcf02c0dcb79c02777f7a","n":262144,"r":8,"p":1},"mac":"9c68040b4c15ee7e37c3d224632798fbf53be116246d8ef5053bf9bf28de1318"}}
-              EOF
-
-              cat <<EOF > $FOLDER_PATH/validator2/nodekey
-              7021fac362293d727f350341d904bf7cf50ef88e1c7b36a3e63fd477cc2ac77c
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator2/nodekey.pub
-              adf61cc269cb1f82f61bb724ac7fd89b1dbf23592f56b973fc019487eb7fb3bd4da63201af9fc9afac2816b5ebd4433ab9a6f5ad1d3ba4d16f463e42b15b744e
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator2/accountKeystore
-              {"version":3,"id":"c73c76dc-ac07-4349-bcd1-11a3c0fa62c8","address":"75125fe554c92cb99f99578ad9125d64c46d18ef","crypto":{"ciphertext":"4a014051f34ce7117b991759ec3a54275890b930d34b39ce20302ce55aecc423","cipherparams":{"iv":"e86d1589dfe842a93954cbec91ff9b77"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"365660e33619dd35b8d958c4117bf02c5209a031491b7c317cf80336ab351f9e","n":262144,"r":8,"p":1},"mac":"c61aa9fd1b1c13fdcbaef10dc0662fc529062bf4d39695875e1a8aa4b2d6caba"}}
-              EOF
-
-              cat <<EOF > $FOLDER_PATH/validator3/nodekey
-              ef5fc7d80bb6d2a8425d0eda0636dde810924c3fae6fea57fec302bed8a39fad
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator3/nodekey.pub
-              31b568f748845b067a7c7c5d85af7a90b0bfddf52c00bb5fe4b1ddf2de9b9b7cf9b893d57257c7fb4b121b1eeeee05ff780dfc16a534b70307118dc96f228d46
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator3/accountKeystore
-              {"version":3,"id":"fa059956-bc91-4d61-a802-dfa16004a418","address":"918227407ba4b9a656bdd9e9d9b1b86b60a18d20","crypto":{"ciphertext":"b2eca56e79a7f0b79075eec24e78d4a4412559d64731f2d7de01e39138fd4fe8","cipherparams":{"iv":"8a81d8519558ba6c792cf8721a76c448"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"2a7b818a0c41c8072ce8571d271936c8b18d09f31e1ef98be210f0b51dbaddd5","n":262144,"r":8,"p":1},"mac":"5b6c1c285e7b635b03817dd10501bc044db8f5752b33ff2b394222b7e09e3d4d"}}
-              EOF
-
-              cat <<EOF > $FOLDER_PATH/validator4/nodekey
-              25c50786de884ab7e482577a50251d05f2cebec58cbbbb677a29fbc26a9b9cdf
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator4/nodekey.pub
-              d6f4de27f3728d77bfba490daf0704485047c2adf12ac09b0f46f4dfda245a1fee4704cf1f427b7fff8f2773802aa9d48f5d0db14f7bfa5e7a178eeb791280fd
-              EOF
-              cat <<EOF > $FOLDER_PATH/validator4/accountKeystore
-              {"version":3,"id":"876b56b4-d6f6-42a3-906e-fc562d1c7321","address":"ea74ea0012ad1a8c0f1cade86406b64cb32f203d","crypto":{"ciphertext":"495458cb09a36186047924ba9345b1e2cfd8eaed545980eb133cececdcc9f6f7","cipherparams":{"iv":"edc7307a726c06c3c764e514c26d02bd"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"d29c1b2867f56a9de6ab9dd312aab35c70a76a07de0529447376b46f9fe8ebab","n":262144,"r":8,"p":1},"mac":"180860927d0da0bd4ea8825f1f37870ceda78ab5c8a2887a622f1416563fc559"}}
-              EOF
-              
               for f in $(find $FOLDER_PATH -type d -iname "validator*" -exec basename {} \;); do
                 if [ -d $FOLDER_PATH/${f} ]; then
                   echo $f
                   kubectl create secret generic goquorum-node-validator-${i}-keys --namespace {{ .Release.Namespace }} --from-file=nodekey=$FOLDER_PATH/${f}/nodekey --from-file=nodekey.pub=$FOLDER_PATH/${f}/nodekey.pub --from-file=enode=$FOLDER_PATH/${f}/nodekey.pub --from-file=keystore=$FOLDER_PATH/${f}/accountKeystore
-                  # kubectl create configmap goquorum-node-validator-${i}-address --from-file=address=$FOLDER_PATH/${f}/address --from-file=keystore=$FOLDER_PATH/${f}/accountKeystore
+                  kubectl create configmap goquorum-node-validator-${i}-address --from-file=address=$FOLDER_PATH/${f}/address
                   
                   # add to the static-nodes
                   pubkey=$(cat $FOLDER_PATH/${f}/nodekey.pub )
@@ -282,3 +231,6 @@ spec:
               done
 
               echo "Completed ..."
+
+
+
