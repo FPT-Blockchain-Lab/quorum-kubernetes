@@ -5,4 +5,11 @@ nodeFlags:
   privacy: false
   removeKeysOnDeletion: false
 
+node:
+  quorum:
+    networkId: 10
+    replicaCount: 1
+    account:
+      unlock: 0
+      password: "/data/quorum/passwords.txt"
 provider: local
