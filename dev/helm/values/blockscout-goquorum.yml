@@ -29,5 +29,5 @@ blockscout: # cpu dependent
   coin: eth
   ethereum_jsonrpc_variant: geth
   ethereum_jsonrpc_transport: http
-  ethereum_jsonrpc_endpoint: "goquorum-node-validator-2-0.goquorum-node-validator-2.quorum.svc.cluster.local" # service name to be used
+  ethereum_jsonrpc_endpoint: "goquorum-node-validator-1-0.goquorum-node-validator-1.quorum.svc.cluster.local" # service name to be used
   secret_key_base: "VTIB3uHDNbvrY0+60ZWgUoUBKDn9ppLR8MI4CpRz4/qLyEFs54ktJfaNT6Z221" # change me please
