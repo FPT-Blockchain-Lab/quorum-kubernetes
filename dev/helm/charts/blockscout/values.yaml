@@ -5,12 +5,18 @@ image:
     tag: v4.0.0-beta
     pullPolicy: IfNotPresent
 
+storage:
+  sizeLimit: "20Gi"
+  pvcSizeLimit: "20Gi"
+
 postgresql:
   postgresqlDatabase: postgres
   postgresqlUsername: postgres
   postgresqlPassword: postgres
   initdbUser: postgres
   initdbPassword: postgres
+  volumePermissions:
+    enabled: true
   enabled: true
 
 blockscout: # cpu dependent
