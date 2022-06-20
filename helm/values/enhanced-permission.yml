@@ -1,0 +1,4 @@
+deployer:
+  rpcUrl: http://goquorum-node-validator-1.quorum.svc.cluster.local:8545
+  networkId: 1337
+  nodeSecretKeyName: goquorum-node-validator-1-keys
