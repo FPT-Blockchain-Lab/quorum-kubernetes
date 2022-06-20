@@ -253,8 +253,6 @@ helm install member-1 ./charts/goquorum-node --namespace quorum --values ./value
 helm install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml
 ```
 
-
-
 Optionally deploy the ingress controller for the network and nodes like so:
 
 ```bash
