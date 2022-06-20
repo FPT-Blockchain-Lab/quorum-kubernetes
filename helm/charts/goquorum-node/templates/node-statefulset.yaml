@@ -272,7 +272,7 @@ spec:
 
             geth \
             --datadir {{ .Values.node.goquorum.dataPath }} \
-            --nodiscover --ipcdisable \
+            --nodiscover \
             --permissioned \
             --nat extip:$POD_IP \
             --verbosity {{ .Values.node.goquorum.log.verbosity }} \
