@@ -99,9 +99,6 @@ spec:
 {{- end}}   
           - name: data
             mountPath: {{ .Values.node.tessera.dataPath }}
-          - name: enhanced-permission-config
-            mountPath: /config/enhanced-permission
-            readOnly: true
           - name: tessera-peers
             mountPath: /config/tessera-peers
         ports:
@@ -225,6 +222,9 @@ spec:
 {{- end}}
           - name: genesis
             mountPath: /etc/genesis
+            readOnly: true
+          - name: enhanced-permission-config
+            mountPath: /config/enhanced-permission
             readOnly: true
           - name: static-nodes
             mountPath: /config/static
