@@ -58,7 +58,59 @@ Client Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.1", GitCom
 Server Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:32:14Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
+## Production with k3s
+
+***NOTE:*** For the detail, please check the quick start [link](https://rancher.com/docs/k3s/latest/en/quick-start/)
+On the master/control plane node, run
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable="traefik,local-path"' sh -
+...
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+# After finish find the token
+sudo cat /var/lib/rancher/k3s/server/node-token
+```
+
+On the worker node, run
+
+```bash
+curl -sfL https://get.k3s.io | K3S_URL=https://myserver:6443 K3S_TOKEN=mynodetoken sh -
+# with myserver is the IP/Domain address of the master node, mynodetoken is the /var/lib/rancher/k3s/server/node-token value
+```
+
 ## Usage
+
+### _Using Cert Manager for Ingress: (Optional but recommnended)_
+
+***NOTE:** only necessary if ingress used
+```
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.8.2 \
+  --set installCRDs=true
+```
+
+### _Install longhorn distributed block storage:_
+
+Firstly, running check requirements script for the cluster
+
+```bash
+curl -sfL https://raw.githubusercontent.com/longhorn/longhorn/v1.3.0/scripts/environment_check.sh | bash -
+```
+
+After the checking succesfully executed, please follow this guide [link](https://longhorn.io/docs/1.3.0/deploy/install/install-with-helm/)
+
+```bash
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+# To check the deployment succeeded, run, all contains with status Running
+kubectl -n longhorn-system get pod
+```
 
 ### _Spin up ELK for logs: (Optional but recommended)_
 
@@ -89,7 +141,7 @@ per your requirements and policies
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 # NOTE: please refer to values/monitoring.yml to configure the alerts per your requirements ie slack, email etc
-helm install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --wait
+helm install monitoring prometheus-community/kube-prometheus-stack --version 37.2.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --wait
 kubectl --namespace quorum apply -f  ./values/monitoring/
 ```
 
@@ -247,7 +299,7 @@ Optionally deploy the ingress controller for the network and nodes like so:
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm install quorum-network-ingress ingress-nginx/ingress-nginx \
+helm install quorum-network ingress-nginx/ingress-nginx \
     --namespace quorum \
     --set controller.ingressClassResource.name="network-nginx" \
     --set controller.ingressClassResource.controllerValue="k8s.io/network-ingress-nginx" \

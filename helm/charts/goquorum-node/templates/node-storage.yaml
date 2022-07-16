@@ -53,21 +53,31 @@ parameters:
 {{- else }}
 
 ---
-apiVersion: v1
-kind: PersistentVolume
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
 metadata:
   name: {{ include "goquorum-node.fullname" . }}-storage
   namespace: {{ .Release.Namespace }}
-  labels:
-    type: local
-spec:
-  storageClassName: {{ include "goquorum-node.fullname" . }}-storage
-  capacity:
-    storage: "{{ .Values.storage.sizeLimit }}"
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/tmp/{{ include "goquorum-node.fullname" . }}"
-
+provisioner: driver.longhorn.io
+reclaimPolicy: "{{.Values.storage.reclaimPolicy }}"
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  numberOfReplicas: "1"
+  dataLocality: "best-effort"
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  #  diskSelector: "ssd,fast"
+  #  nodeSelector: "storage,fast"
+  #  recurringJobSelector: '[
+  #   {
+  #     "name":"snap",
+  #     "isGroup":true,
+  #   },
+  #   {
+  #     "name":"backup",
+  #     "isGroup":false,
+  #   }
+  #  ]'
 {{- end }}
 

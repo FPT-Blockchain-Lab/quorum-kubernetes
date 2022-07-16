@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+ name: letsencrypt-prod-issuer
+ namespace: cert-manager
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: trmaphi@gmail.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod-tls
+    solvers:
+    - selector:
+        dnsZones:
+        - 'longhorn.testnet.fpt-blockchain-lab.com'
+        - 'monitoring.testnet.fpt-blockchain-lab.com'
+        - 'testnet.fpt-blockchain-lab.com'
+      dns01:
+        cnameStrategy: Follow
+        cloudflare:
+          email: trmaphi@gmail.com
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
+--- 
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: letsencrypt-prod-tls
+  namespace: cert-manager
+spec:
+  secretName: letsencrypt-prod-tls
+  dnsNames:
+    - 'longhorn.testnet.fpt-blockchain-lab.com'
+    - 'monitoring.testnet.fpt-blockchain-lab.com'
+    - 'testnet.fpt-blockchain-lab.com'
+  issuerRef:
+    name: letsencrypt-prod-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
