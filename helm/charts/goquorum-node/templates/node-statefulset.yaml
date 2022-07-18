@@ -223,6 +223,11 @@ spec:
           - name: genesis
             mountPath: /etc/genesis
             readOnly: true
+{{- if .Values.quorumFlags.enhancedPermissioned }}            
+          - name: enhanced-permission-config
+            mountPath: /config/enhanced-permission
+            readOnly: true
+{{- end}}  
           - name: static-nodes
             mountPath: /config/static
             readOnly: true
@@ -262,12 +267,25 @@ spec:
             geth --datadir={{ .Values.node.goquorum.dataPath }} init {{ .Values.node.goquorum.genesisFilePath }}
             cp {{ .Values.node.goquorum.keysPath }}/nodekey {{ .Values.node.goquorum.dataPath }}/geth/nodekey
             cp /config/static/static-nodes.json {{ .Values.node.goquorum.dataPath }}/geth/static-nodes.json
+            
+          {{- if .Values.quorumFlags.permissioned }} 
+            cp /config/static/static-nodes.json {{ .Values.node.goquorum.dataPath }}/permissioned-nodes.json
+          {{- end }}
+
+          {{- if .Values.quorumFlags.enhancedPermissioned }}
+            cp /config/enhanced-permission/permission-config.json {{ .Values.node.goquorum.dataPath }}/permission-config.json
+          {{- end}}
+
+            cp /config/enhanced-permission/permission-config.json {{ .Values.node.goquorum.dataPath }}/permission-config.json
             mkdir -p {{ .Values.node.goquorum.dataPath }}/keystore/
             cp {{ .Values.node.goquorum.keysPath }}/accountKeystore {{ .Values.node.goquorum.dataPath }}/keystore/key;
 
             geth \
             --datadir {{ .Values.node.goquorum.dataPath }} \
-            --nodiscover --ipcdisable \
+            --nodiscover \
+          {{- if or (eq .Values.quorumFlags.permissioned  true) (eq .Values.quorumFlags.enhancedPermissioned true) }}
+            --permissioned \
+          {{- end }}
             --nat extip:$POD_IP \
             --verbosity {{ .Values.node.goquorum.log.verbosity }} \
             --istanbul.blockperiod {{ .Values.node.goquorum.miner.blockPeriod }} --mine --miner.threads {{ .Values.node.goquorum.miner.threads }} --miner.gasprice 0 --emitcheckpoints \
@@ -305,6 +323,13 @@ spec:
           items:
             - key: genesis.json
               path: genesis.json
+      - name: enhanced-permission-config
+        configMap:
+          name: goquorum-enhanced-permission-config
+          optional: true
+          items:
+            - key: permission-config.json
+              path: permission-config.json
       - name: static-nodes
         configMap:
           name: goquorum-peers
