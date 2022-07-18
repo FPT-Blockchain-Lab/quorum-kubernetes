@@ -58,7 +58,43 @@ Client Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.1", GitCom
 Server Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:32:14Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
+### Production with k3s
+
+***NOTE:*** For the detail, please check the quick start [link](https://rancher.com/docs/k3s/latest/en/quick-start/)
+On the master/control plane node, run
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable="traefik,local-path"' sh -
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+# After finish find the token
+sudo cat /var/lib/rancher/k3s/server/node-token
+```
+
+On the worker node, run
+
+```bash
+curl -sfL https://get.k3s.io | K3S_URL=https://myserver:6443 K3S_TOKEN=mynodetoken sh -
+# with myserver is the IP/Domain address of the master node, mynodetoken is the /var/lib/rancher/k3s/server/node-token value
+```
+
 ## Usage
+### _Install longhorn distributed block storage:_
+
+Firstly, running check requirements script for the cluster
+
+```bash
+curl -sfL https://raw.githubusercontent.com/longhorn/longhorn/v1.3.0/scripts/environment_check.sh | bash -
+```
+
+After the checking succesfully executed, please follow this guide [link](https://longhorn.io/docs/1.3.0/deploy/install/install-with-helm/)
+
+```bash
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+# To check the deployment succeeded, run
+kubectl -n longhorn-system get pod
+```
 
 ### _Spin up ELK for logs: (Optional but recommended)_
 
@@ -92,42 +128,6 @@ helm repo update
 helm install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --wait
 kubectl --namespace quorum apply -f  ./values/monitoring/
 ```
-
-Additionally, you will need to deploy a separate ingress which will serve external facing services like the explorer and monitoring endpoints
-
-```bash
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm install quorum-monitoring-ingress ingress-nginx/ingress-nginx \
-    --namespace quorum \
-    --set controller.ingressClassResource.name="monitoring-nginx" \
-    --set controller.ingressClassResource.controllerValue="k8s.io/monitoring-ingress-nginx" \
-    --set controller.replicaCount=1 \
-    --set controller.nodeSelector."kubernetes\.io/os"=linux \
-    --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
-    --set controller.admissionWebhooks.patch.nodeSelector."kubernetes\.io/os"=linux \
-    --set controller.service.externalTrafficPolicy=Local
-
-kubectl apply -f ../ingress/ingress-rules-monitoring.yml
-```
-
-Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard
-or on the command line `kubectl -n quorum get services quorum-monitoring-ingress-ingress-nginx-controller`.
-
-You can then access Grafana on: 
-```bash
-# For Besu's grafana address:
-http://<INGRESS_IP>/d/XE4V0WGZz/besu-overview?orgId=1&refresh=10s
-
-# For GoQuorum's grafana address:
-http://<INGRESS_IP>/d/a1lVy7ycin9Yv/goquorum-overview?orgId=1&refresh=10s
-```
-
-You can access Kibana on:
-```bash
-http://<INGRESS_IP>/kibana
-```
-
 ### Blockchain Explorer
 
 #### Blockscout
@@ -176,12 +176,6 @@ After modifying configmap with node details, you will need to restart the pod to
 kubectl delete pod <quorum-explorer-pod-name>
 ```
 
-If you've deployed the Ingress from the previous step, you can access the Quorum Explorer on:
-
-```bash
-http://<INGRESS_IP>/explorer
-```
-
 ### _For Besu:_
 
 ```bash
@@ -205,26 +199,6 @@ helm install member-1 ./charts/besu-node --namespace quorum --values ./values/tx
 helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reader.yml
 ```
 
-Optionally deploy the ingress controller for the network and nodes like so:
-
-NOTE: Deploying the ingress rules, assumes you are connecting to the `tx-1` node from section 3 above. Please update this as required to suit your requirements
-
-```bash
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm install quorum-network-ingress ingress-nginx/ingress-nginx \
-    --namespace quorum \
-    --set controller.ingressClassResource.name="network-nginx" \
-    --set controller.ingressClassResource.controllerValue="k8s.io/network-ingress-nginx" \
-    --set controller.replicaCount=1 \
-    --set controller.nodeSelector."kubernetes\.io/os"=linux \
-    --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
-    --set controller.admissionWebhooks.patch.nodeSelector."kubernetes\.io/os"=linux \
-    --set controller.service.externalTrafficPolicy=Local
-
-kubectl apply -f ../ingress/ingress-rules-besu.yml
-```
-
 ### _For GoQuorum:_
 
 ```bash
@@ -234,30 +208,96 @@ helm install validator-1 ./charts/goquorum-node --namespace quorum --values ./va
 helm install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
 helm install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
 helm install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+```
 
-# spin up a quorum and tessera node pair
+### Deploy enhanced permission contract
+
+```
+---
+
+quorumFlags:
+  ...
+  permissioned: true
+  enhancedPermissioned: true
+  ...
+```
+
+```bash
+helm install enhanced-permission ./charts/goquorum-enhanced-permission --namespace quorum --values ./values/enhanced-permission.yml
+
+helm upgrade validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm upgrade validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+```
+
+### spin up a quorum and tessera node pair
+```bash
 helm install member-1 ./charts/goquorum-node --namespace quorum --values ./values/txnode.yml
+```
 
-# spin up a quorum rpc node
+### spin up a quorum rpc node
+
+```bash
 helm install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml
 ```
+
+### Ingress
+
+***NOTES*** for host based approach, please set DNS A record to the Cluster IP Address
 
 Optionally deploy the ingress controller for the network and nodes like so:
 
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm install quorum-network-ingress ingress-nginx/ingress-nginx \
-    --namespace quorum \
-    --set controller.ingressClassResource.name="network-nginx" \
-    --set controller.ingressClassResource.controllerValue="k8s.io/network-ingress-nginx" \
-    --set controller.replicaCount=1 \
-    --set controller.nodeSelector."kubernetes\.io/os"=linux \
-    --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
-    --set controller.admissionWebhooks.patch.nodeSelector."kubernetes\.io/os"=linux \
+helm install ingress ingress-nginx/ingress-nginx \
+    --namespace ingres-nginx \
     --set controller.service.externalTrafficPolicy=Local
+```
 
-kubectl apply -f ../ingress/ingress-rules-goquorum.yml
+Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard
+or on the command line `kubectl -n quorum get services quorum-monitoring-ingress-ingress-nginx-controller`.
+And, remember to view the host for the ingress with ``
+
+You can then access Grafana on: 
+```bash
+# For Besu's grafana address:
+http://<INGRESS_HOST>/d/XE4V0WGZz/besu-overview?orgId=1&refresh=10s
+
+# For GoQuorum's grafana address:
+http://<INGRESS_HOST>/d/a1lVy7ycin9Yv/goquorum-overview?orgId=1&refresh=10s
+```
+
+You can access Kibana on:
+```bash
+http://<INGRESS_HOST>/kibana
+```
+
+If you've deployed the Ingress from the previous step, you can access the Quorum Explorer on:
+
+```bash
+http://<INGRESS_HOST>/explorer
+```
+
+### _Using Cert Manager for Ingress: (Optional but recommnended)_
+
+***NOTE:** only necessary if ingress used
+```
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.8.2 \
+  --set installCRDs=true
 ```
 
 ### Once deployed, services are available as follows on the IP/ of the ingress controllers:
@@ -267,7 +307,7 @@ API Calls to either client
 ```bash
 
 # HTTP RPC API:
-curl -v -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://<INGRESS_IP>/rpc
+curl -v -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://<INGRESS_HOST>/rpc
 
 # which should return (confirming that the node running the JSON-RPC service is syncing):
 {
@@ -277,7 +317,7 @@ curl -v -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","me
 }
 
 # HTTP GRAPHQL API:
-curl -X POST -H "Content-Type: application/json" --data '{ "query": "{syncing{startingBlock currentBlock highestBlock}}"}' http://<INGRESS_IP>/graphql/
+curl -X POST -H "Content-Type: application/json" --data '{ "query": "{syncing{startingBlock currentBlock highestBlock}}"}' http://<INGRESS_HOST>/graphql/
 # which should return
 {
   "data" : {
