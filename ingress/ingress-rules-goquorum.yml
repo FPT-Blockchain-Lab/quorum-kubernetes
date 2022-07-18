@@ -3,10 +3,10 @@
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
-  name: network-nginx
+  name: goquorum-ingress-class
   namespace: quorum
 spec:
-  controller: k8s.io/network-ingress-nginx
+  controller: k8s.io/ingress-nginx
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -15,6 +15,7 @@ metadata:
   name: goquorum-ingress-routes
   namespace: quorum
   annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/configuration-snippet: |
@@ -26,94 +27,16 @@ metadata:
     #nginx.ingress.kubernetes.io/whitelist-source-range: w.x.y.z/32,a.b.c.d/32
 
 spec:
-  ingressClassName: network-nginx
+  ingressClassName: goquorum-ingress-class
+  tls:
+    - hosts:
+        - testnet.fpt-blockchain-lab.com
+        - monitoring-testnet.fpt-blockchain-lab.com
+      secretName: letsencrypt-prod-tls
   rules:
-  - http:
+  - host: monitoring-testnet.fpt-blockchain-lab.com
+    http:
       paths:
-      - path: /rpc
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-rpc-1
-            port:
-              number: 8545
-      - path: /validator-1
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-validator-1
-            port:
-              number: 8545
-      - path: /validator-2
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-validator-2
-            port:
-              number: 8545
-      - path: /validator-3
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-validator-3
-            port:
-              number: 8545
-      - path: /validator-4
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-validator-4
-            port:
-              number: 8545
-      - path: /member-1
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-1
-            port:
-              number: 8545
-      - path: /tessera-1
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-1
-            port:
-              number: 9080
-      - path: /member-2
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-2
-            port:
-              number: 8545
-      - path: /tessera-2
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-2
-            port:
-              number: 9080
-      - path: /member-3
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-3
-            port:
-              number: 8545
-      - path: /tessera-3
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-member-3
-            port:
-              number: 9080
-      - path: /kibana
-        pathType: Prefix
-        backend:
-          service:
-            name: kibana-kibana
-            port:
-              number: 5601
       - path: /
         pathType: Prefix
         backend:
@@ -121,3 +44,34 @@ spec:
             name: monitoring-grafana
             port:
               number: 3000
+  - host: testnet.fpt-blockchain-lab.com
+    http:
+      paths:
+      - path: /explorer
+        pathType: Prefix
+        backend:
+          service:
+            name: quorum-explorer
+            port:
+              number: 31999
+      - path: /rpc
+        pathType: Prefix
+        backend:
+          service:
+            name: goquorum-node-rpc-1
+            port:
+              number: 8545
+      - path: /grapqhl
+        pathType: Prefix
+        backend:
+          service:
+            name: goquorum-node-rpc-1
+            port:
+              number: 8547
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: goquorum-node-rpc-1
+            port:
+              number: 8546
