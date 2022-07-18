@@ -31,19 +31,8 @@ spec:
   tls:
     - hosts:
         - testnet.fpt-blockchain-lab.com
-        - monitoring-testnet.fpt-blockchain-lab.com
       secretName: letsencrypt-prod-tls
   rules:
-  - host: monitoring-testnet.fpt-blockchain-lab.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: monitoring-grafana
-            port:
-              number: 3000
   - host: testnet.fpt-blockchain-lab.com
     http:
       paths:
@@ -53,7 +42,7 @@ spec:
           service:
             name: quorum-explorer
             port:
-              number: 31999
+              number: 25000
       - path: /rpc
         pathType: Prefix
         backend:

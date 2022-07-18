@@ -264,7 +264,24 @@ helm install ingress ingress-nginx/ingress-nginx \
 
 Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard
 or on the command line `kubectl -n quorum get services quorum-monitoring-ingress-ingress-nginx-controller`.
-And, remember to view the host for the ingress with ``
+And, remember to view the host for the ingress with `kubectl get ingress -A`
+
+Deploy RPC ingress
+```
+kubectl apply -f ../ingress/ingress-rules-goquorum.yml
+```
+
+Deploy Monitoring Ingress
+
+```
+kubectl apply -f ../ingress/ingress-rules-monitoring.yml
+```
+
+Deploy Longhorn Ingress
+
+```
+kubectl apply -f ../ingress/ingress-longhorn.yml
+```
 
 You can then access Grafana on: 
 ```bash
