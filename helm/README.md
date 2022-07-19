@@ -125,7 +125,7 @@ per your requirements and policies
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 # NOTE: please refer to values/monitoring.yml to configure the alerts per your requirements ie slack, email etc
-helm install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --wait
+helm install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --atomic
 kubectl --namespace quorum apply -f  ./values/monitoring/
 ```
 ### Blockchain Explorer
@@ -140,12 +140,7 @@ helm install blockscout ./charts/blockscout --namespace quorum --values ./values
 
 # For Besu
 helm install blockscout ./charts/blockscout --namespace quorum --values ./values/blockscout-besu.yml
-```
-If you've deployed the Ingress from the previous step, you can access Blockscout on:
-
-```bash
-http://<INGRESS_IP>/blockscout
-```
+``` 
 
 #### Quorum Explorer
 
@@ -202,20 +197,37 @@ helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reade
 ### _For GoQuorum:_
 
 ```bash
-helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.yml
+helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.yml --wait-for-jobs
 
-helm install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
+helm install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+```
+
+### spin up a quorum and tessera node pair (optional)
+```bash
+helm install member-1 ./charts/goquorum-node --namespace quorum --values ./values/txnode.yml
+```
+
+### spin up a quorum rpc node
+
+```bash
+helm install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml --atomic
 ```
 
 ### Deploy enhanced permission contract
 
+Generating config
+```Bash
+helm install enhanced-permission ./charts/goquorum-enhanced-permission --namespace quorum --values ./values/enhanced-permission.yml --wait-for-jobs
 ```
+
+Edit `./values/validator.yml`. To turn on copy mounted volumes files into quorum data files. 
+```yaml
 ---
 
 quorumFlags:
@@ -226,26 +238,13 @@ quorumFlags:
 ```
 
 ```bash
-helm install enhanced-permission ./charts/goquorum-enhanced-permission --namespace quorum --values ./values/enhanced-permission.yml
-
-helm upgrade validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-helm upgrade validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
-```
-
-### spin up a quorum and tessera node pair
-```bash
-helm install member-1 ./charts/goquorum-node --namespace quorum --values ./values/txnode.yml
-```
-
-### spin up a quorum rpc node
-
-```bash
-helm install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml
+helm upgrade validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 ```
 
 ### Ingress
@@ -258,19 +257,19 @@ Optionally deploy the ingress controller for the network and nodes like so:
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm install ingress ingress-nginx/ingress-nginx \
-    --namespace ingres-nginx \
+    --namespace ingress-nginx \
+    --create-namespace \
     --set controller.service.externalTrafficPolicy=Local
 ```
 
 Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard
 or on the command line `kubectl -n quorum get services quorum-monitoring-ingress-ingress-nginx-controller`.
-And, remember to view the host for the ingress with `kubectl get ingress -A`
 
 Deploy RPC ingress
 ```
 kubectl apply -f ../ingress/ingress-rules-goquorum.yml
 ```
-
+ 
 Deploy Monitoring Ingress
 
 ```
@@ -280,8 +279,10 @@ kubectl apply -f ../ingress/ingress-rules-monitoring.yml
 Deploy Longhorn Ingress
 
 ```
-kubectl apply -f ../ingress/ingress-longhorn.yml
+kubectl apply -f ../ingress/ingress-rules-longhorn.yml
 ```
+
+Those three command deploy the IngressClass at cluster scope, and 3 Ingress for the given namespace. This is required because TLS sercret must be avaiable in the same namespace. And, remember to view the host for the ingress with `kubectl get ingress -A`
 
 You can then access Grafana on: 
 ```bash

@@ -4,7 +4,6 @@ apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   name: goquorum-ingress-class
-  namespace: quorum
 spec:
   controller: k8s.io/ingress-nginx
 
@@ -18,12 +17,7 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      rewrite (?i)/tessera-[0-9]?/(.*) /$1 break;
-      rewrite (?i)/tessera-[0-9]?$ / break;    
-      rewrite (?i)/kibana/(.*) /$1 break;
-      rewrite (?i)/kibana$ / break;
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/app-root: "/explorer"
     #nginx.ingress.kubernetes.io/whitelist-source-range: w.x.y.z/32,a.b.c.d/32
 
 spec:
@@ -36,6 +30,13 @@ spec:
   - host: testnet.fpt-blockchain-lab.com
     http:
       paths:
+      - path: /blockscout
+        pathType: Prefix
+        backend:
+          service:
+            name: blockscout
+            port:
+              number: 4000
       - path: /explorer
         pathType: Prefix
         backend:
@@ -50,13 +51,6 @@ spec:
             name: goquorum-node-rpc-1
             port:
               number: 8545
-      - path: /grapqhl
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-rpc-1
-            port:
-              number: 8547
       - path: /ws
         pathType: Prefix
         backend:
@@ -64,3 +58,10 @@ spec:
             name: goquorum-node-rpc-1
             port:
               number: 8546
+      - path: /graphql
+        pathType: Prefix
+        backend:
+          service:
+            name: goquorum-node-rpc-1
+            port:
+              number: 8547
