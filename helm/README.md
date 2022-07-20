@@ -126,6 +126,11 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 # NOTE: please refer to values/monitoring.yml to configure the alerts per your requirements ie slack, email etc
 helm install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --atomic
+```
+
+Then in ./values/monitoring/, search for yaml path `grafana.adminPassword` change the value to your desired value.
+
+```bash
 kubectl --namespace quorum apply -f  ./values/monitoring/
 ```
 ### Blockchain Explorer
