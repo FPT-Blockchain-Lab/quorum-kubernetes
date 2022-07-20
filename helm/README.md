@@ -216,7 +216,7 @@ helm install member-1 ./charts/goquorum-node --namespace quorum --values ./value
 ### spin up a quorum rpc node
 
 ```bash
-helm install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml --atomic
+helm upgrade --install rpc-1 ./charts/goquorum-node --namespace quorum --values ./values/reader.yml --atomic
 ```
 
 ### Deploy enhanced permission contract
@@ -256,10 +256,10 @@ Optionally deploy the ingress controller for the network and nodes like so:
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm install ingress ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx \
-    --create-namespace \
-    --set controller.service.externalTrafficPolicy=Local
+helm upgrade --install ingress ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+  --set controller.service.externalTrafficPolicy=Local
 ```
 
 Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard

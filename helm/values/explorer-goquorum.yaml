@@ -14,56 +14,54 @@ explorerConfig: |
   {
   "algorithm": "qbft",
   "nodes": [{
-      "name": "validator1",
+      "name": "validator-1",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-1.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator2",
+      "name": "validator-2",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-2.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator3",
+      "name": "validator-3",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-3.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator4",
+      "name": "validator-4",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-4.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator5",
+      "name": "validator-5",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-5.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator6",
+      "name": "validator-6",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-6.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
     {
-      "name": "validator7",
+      "name": "validator-7",
       "client": "goquorum",
       "rpcUrl": "http://goquorum-node-validator-7.quorum.svc.cluster.local:8545",
       "privateTxUrl": ""
     },
-    {
-      "name": "member1",
+        {
+      "name": "rpc-1",
       "client": "goquorum",
-      "rpcUrl": "http://goquorum-node-member-1.quorum.svc.cluster.local:8545",
-      "privateTxUrl": "http://goquorum-node-member-1.quorum.svc.cluster.local:9080",
-      "privateKey": "0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63",
-      "accountAddress": "0xfe3b557e8fb62b89f4916b721be55ceb828dbd73"
-    }
-  ]
+      "rpcUrl": "http://goquorum-node-rpc-1.quorum.svc.cluster.local:8545",
+      "privateTxUrl": ""
+    },
+    ]
   }
 
 explorerEnvConfig: |-
@@ -73,8 +71,8 @@ explorerEnvConfig: |-
 
   DISABLE_AUTH=true
 
-  NEXTAUTH_URL=http://localhost:25000
-  NEXTAUTH_URL_INTERNAL=http://localhost:25000
+  NEXTAUTH_URL=testnet.fpt-blockchain-lab.com
+  NEXTAUTH_URL_INTERNAL=testnet.fpt-blockchain-lab.com
   NEXTAUTH_SECRET=
   # To generate NEXTAUTH_SECRET: `openssl rand -hex 32` or go to https://generate-secret.now.sh/32
 
