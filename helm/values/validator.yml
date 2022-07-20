@@ -3,6 +3,7 @@
 quorumFlags:
   privacy: false
   removeKeysOnDelete: false
+  mine: true
   permissioned: false
   enhancedPermissioned: false
   isBootnode: false    # Besu only, set this to true if this node is a bootnode
