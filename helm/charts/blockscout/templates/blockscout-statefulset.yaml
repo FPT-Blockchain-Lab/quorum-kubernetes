@@ -114,8 +114,8 @@ spec:
             value: {{ .Values.blockscout.ethereum_jsonrpc_transport }}
           - name: ETHEREUM_JSONRPC_HTTP_URL
             value: http://{{ .Values.blockscout.ethereum_jsonrpc_endpoint }}:8545
-          # - name: ETHEREUM_JSONRPC_TRACE_URL
-          #   value: http://{{ .Values.blockscout.ethereum_jsonrpc_endpoint }}:8545
+          - name: ETHEREUM_JSONRPC_TRACE_URL
+            value: http://{{ .Values.blockscout.ethereum_jsonrpc_endpoint }}:8545
           - name: ETHEREUM_JSONRPC_WS_URL
             value: ws://{{ .Values.blockscout.ethereum_jsonrpc_endpoint }}:8546
           - name: SECRET_KEY_BASE
