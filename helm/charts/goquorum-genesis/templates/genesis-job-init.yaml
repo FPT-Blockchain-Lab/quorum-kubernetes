@@ -98,6 +98,13 @@ spec:
                   kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-genesis --from-file=genesis.json=$FOLDER_PATH/goQuorum/genesis.json
                 fi
               }
+              
+              function safeWriteNetworkIdConfigmap {
+                kubectl get configmap --namespace {{ .Release.Namespace }} goquorum-networkid
+                if [ $? -ne 0 ]; then
+                  kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-networkid --from-literal=networkId={{ .Values.rawGenesisConfig.genesis.config.chainId }}
+                fi
+              }
 
               function safeWriteQuorumPeersConfigmap {
                 kubectl get configmap --namespace {{ .Release.Namespace }} goquorum-peers
@@ -110,6 +117,8 @@ spec:
 
               echo $FOLDER_PATH
               echo "Creating genesis configmap in k8s ..."
+              
+              safeWriteNetworkIdConfigmap
               safeWriteGenesisConfigmap $FOLDER_PATH
 
               # create the static-nodes with proper dns names for the quorum nodes  

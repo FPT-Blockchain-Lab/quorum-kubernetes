@@ -196,7 +196,10 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: QUORUM_NETWORK_ID
-            value: "{{ .Values.node.goquorum.networkId }}"
+            valueFrom:
+              configMapKeyRef:
+                name: goquorum-networkid
+                key: networkId
           - name: QUORUM_CONSENSUS
             value: istanbul
 {{- if .Values.quorumFlags.privacy }}
@@ -291,9 +294,10 @@ spec:
           {{- if .Values.quorumFlags.mine }}
             --istanbul.blockperiod {{ .Values.node.goquorum.miner.blockPeriod }} --mine --miner.threads {{ .Values.node.goquorum.miner.threads }} --miner.gasprice 0 --emitcheckpoints \
           {{- end }}
+            --gcmode=archive
             --syncmode full --nousb \
             --metrics --pprof --pprof.addr {{ .Values.node.goquorum.metrics.pprofaddr | quote }} --pprof.port {{ .Values.node.goquorum.metrics.pprofport }} \
-            --networkid {{ .Values.node.goquorum.networkId }} \
+            --networkid $QUORUM_NETWORK_ID \
             --port {{ .Values.node.goquorum.p2p.port }} \
           {{- if .Values.node.goquorum.rpc.enabled }}
             --http --http.addr {{ .Values.node.goquorum.rpc.addr }} --http.port {{ .Values.node.goquorum.rpc.port }} --http.corsdomain {{ .Values.node.goquorum.rpc.corsDomain | quote }} --http.vhosts {{ .Values.node.goquorum.rpc.vHosts | quote }} --http.api {{ .Values.node.goquorum.rpc.api | quote }} \

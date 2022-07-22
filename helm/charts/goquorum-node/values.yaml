@@ -44,7 +44,6 @@ node:
     dataPath: "/data/quorum"
     keysPath: "/keys"
     genesisFilePath: "/etc/genesis/genesis.json"
-    networkId: 10
     replicaCount: 1
     account:
       unlock: 0
