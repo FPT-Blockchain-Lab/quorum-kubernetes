@@ -133,9 +133,37 @@ Then in ./values/monitoring/, search for yaml path `grafana.adminPassword` chang
 ```bash
 kubectl --namespace quorum apply -f  ./values/monitoring/
 ```
+
+### Install postgres cluster (not recommend, please use the hosted services)
+
+```bash
+helm repo add postgresql bitnami/postgresql
+helm repo update
+helm install postgresql bitnami/postgresql --version 11.6.18 --namespace=quorum --create-namespace --values ./values/postgresql.yml --atomic --debug
+```
+
+```bash
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace quorum postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
+echo $POSTGRES_PASSWORD
+kubectl exec -it postgresql-0  -n quorum -- /opt/bitnami/scripts/postgresql/entrypoint.sh /bin/bash
+PGPASSWORD="$POSTGRES_PASSWORD" --host postgresql -U postgres -d postgres -p 5432
+```
+
+```sql
+CREATE DATABASE blockscout;
+CREATE USER blockscout WITH ENCRYPTED PASSWORD 'blockscout';
+GRANT ALL PRIVILEGES ON DATABASE blockscout TO blockscout;
+
+CREATE DATABASE subgraph;
+CREATE USER subgraph WITH ENCRYPTED PASSWORD 'subgraph';
+GRANT ALL PRIVILEGES ON DATABASE subgraph TO subgraph;
+```
+
 ### Blockchain Explorer
 
 #### Blockscout
+
+**Notes** Blockscout use subchart of postgresql. The default value of subchart is configured at helm/charts/blockscout/values.yaml postgresql
 
 ```bash
 helm dependency update ./charts/blockscout
@@ -347,4 +375,10 @@ curl -X POST -H "Content-Type: application/json" --data '{ "query": "{syncing{st
     "syncing" : null
   }
 }
+```
+
+### LC protocol
+
+```
+helm upgrade --install lc ./charts/lc --namespace quorum --atomic --debug --dry-run
 ```
