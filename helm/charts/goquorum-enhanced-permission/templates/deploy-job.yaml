@@ -80,7 +80,10 @@ spec:
           - name: RPC_URL
             value: "{{ .Values.deployer.rpcUrl }}"
           - name: NETWORK_ID
-            value: "{{ .Values.deployer.networkId }}"
+            valueFrom:
+              configMapKeyRef:
+                name: goquorum-networkid
+                key: networkId
           - name: ACCOUNT_PRIVATE_KEY
             valueFrom:
               secretKeyRef:
@@ -94,7 +97,7 @@ spec:
               VERSION=1.0.2
               wget https://github.com/FPT-Blockchain-Lab/quorum-enhanced-permission-deployer/archive/refs/tags/$VERSION.zip
               unzip $VERSION.zip
-              FOLDER_PATH=$(pwd)/quorum-enhanced-permission-deployer-$VERSION
+              export FOLDER_PATH=$(pwd)/quorum-enhanced-permission-deployer-$VERSION
               cd $FOLDER_PATH && npm install
               node $FOLDER_PATH/deployer.js
 
@@ -154,7 +157,12 @@ spec:
             - |
 
               echo "Deleting genesis configmap in k8s ..."
-              kubectl delete configmap --namespace {{ .Release.Namespace }} goquorum-enhanced-permission-config
+              kubectl get configmap --namespace {{ .Release.Namespace }} goquorum-enhanced-permission-config > /dev/null 2>&1
+              if [ $? -ne 0 ]; then
+                kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-enhanced-permission-config --from-file=permission-config.json=$FOLDER_PATH/permission-config.json
+              fi
+
+              
 
 
 

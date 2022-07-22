@@ -10,5 +10,4 @@ provider: local
 # the number of Validators you want
 deployer:
   rpcUrl: http://goquorum-node-validator-1.quorum.svc.cluster.local:8545
-  networkId: 10
   nodeSecretKeyName: goquorum-node-validator-1-keys

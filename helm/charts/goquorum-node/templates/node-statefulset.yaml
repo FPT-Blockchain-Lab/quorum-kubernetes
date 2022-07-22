@@ -278,8 +278,7 @@ spec:
           {{- if .Values.quorumFlags.enhancedPermissioned }}
             cp /config/enhanced-permission/permission-config.json {{ .Values.node.goquorum.dataPath }}/permission-config.json
           {{- end}}
-
-            cp /config/enhanced-permission/permission-config.json {{ .Values.node.goquorum.dataPath }}/permission-config.json
+          
             mkdir -p {{ .Values.node.goquorum.dataPath }}/keystore/
             cp {{ .Values.node.goquorum.keysPath }}/accountKeystore {{ .Values.node.goquorum.dataPath }}/keystore/key;
 
