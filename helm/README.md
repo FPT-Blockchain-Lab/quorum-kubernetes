@@ -91,7 +91,7 @@ After the checking succesfully executed, please follow this guide [link](https:/
 ```bash
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+helm install longhorn longhorn/longhorn --version 1.3.0 --namespace longhorn-system --create-namespace
 # To check the deployment succeeded, run
 kubectl -n longhorn-system get pod
 ```
