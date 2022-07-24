@@ -113,7 +113,7 @@ helm upgrade --install loki-stack grafana/loki-stack \
     --set loki.fullnameOverride=loki,logstash.fullnameOverride=logstash-loki
 
 # NOTE: please refer to values/prometheus-stack.yml to configure the alerts per your requirements ie slack, email etc
-helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=monitoring --create-namespace --values ./values/prometheus-stack.yml --atomic --debug
+helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=monitoring --create-namespace --values ./values/prometheus-stack.yml --atomic --debug > manifest-prometheus-stack.logs
 ```
 
 Install grafana support both Prometheus and Loki

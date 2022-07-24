@@ -7,7 +7,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ include "goquorum-node.fullname" . }}-servicemonitor
   labels:
-    release: monitoring
+    release: prometheus-stack
     helm.sh/chart: {{ include "goquorum-node.chart" . }}
     app: {{ template "goquorum-node.fullname" . }}
     chart: {{ template "goquorum-node.chart" . }}
