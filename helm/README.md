@@ -58,7 +58,7 @@ Client Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.1", GitCom
 Server Version: version.Info{Major:"1", Minor:"15", GitVersion:"v1.15.0", GitCommit:"e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529", GitTreeState:"clean", BuildDate:"2019-06-19T16:32:14Z", GoVersion:"go1.12.5", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-### Production with k3s
+### Production with k3s with single master
 
 ***NOTE:*** For the detail, please check the quick start [link](https://rancher.com/docs/k3s/latest/en/quick-start/)
 On the master/control plane node, run
@@ -66,6 +66,7 @@ On the master/control plane node, run
 ```bash
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable="traefik,local-path"' sh -
 sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER ~/.kube/config
 # After finish find the token
 sudo cat /var/lib/rancher/k3s/server/node-token
 ```
@@ -91,7 +92,7 @@ After the checking succesfully executed, please follow this guide [link](https:/
 ```bash
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --version 1.3.0 --namespace longhorn-system --create-namespace
+helm install longhorn longhorn/longhorn --version 1.3.0 --namespace longhorn-system --create-namespace --values ./values/longhorn.yml
 # To check the deployment succeeded, run
 kubectl -n longhorn-system get pod
 ```
@@ -230,14 +231,14 @@ helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reade
 ### _For GoQuorum:_
 
 ```bash
-helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.yml --wait-for-jobs
+helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.testnet.yml --wait-for-jobs
 
-helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
+helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
+helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
+helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
+helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
+helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
 helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 ```
 
@@ -265,18 +266,19 @@ Edit `./values/validator.yml`. To turn on copy mounted volumes files into quorum
 
 quorumFlags:
   ...
-  permissioned: true
   enhancedPermissioned: true
   ...
 ```
 
+Take turn to validator apply new config to prevent network going down.
+
 ```bash
-helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
-helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
+helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
+helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
+helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
+helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
+helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
 helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 ```
 
