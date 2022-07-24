@@ -23,10 +23,10 @@ spec:
   ingressClassName: goquorum-ingress-class
   tls:
     - hosts:
-        - testnet.fpt-blockchain-lab.com
+        - prod.fpt-blockchain-lab.com
       secretName: letsencrypt-prod-tls
   rules:
-  - host: testnet.fpt-blockchain-lab.com
+  - host: prod.fpt-blockchain-lab.com
     http:
       paths:
       - path: /
@@ -50,10 +50,10 @@ spec:
             name: goquorum-node-rpc-1
             port:
               number: 8546
-      - path: /graphql
-        pathType: Prefix
-        backend:
-          service:
-            name: goquorum-node-rpc-1
-            port:
-              number: 8547
+      # - path: /graphql
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: goquorum-node-rpc-1
+      #       port:
+      #         number: 8547

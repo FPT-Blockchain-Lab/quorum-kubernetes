@@ -12,20 +12,23 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: monitoring-ingress-routes
-  namespace: quorum
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite (?i)/kibana/(.*) /$1 break;
+      rewrite (?i)/kibana$ / break;
     #nginx.ingress.kubernetes.io/whitelist-source-range: w.x.y.z/32,a.b.c.d/32
 
 spec:
   ingressClassName: monitoring-ingress-class
   tls:
     - hosts:
-        - monitoring-testnet.fpt-blockchain-lab.com
+        - monitoring.fpt-blockchain-lab.com
       secretName: letsencrypt-prod-tls
   rules:
-  - host: monitoring-testnet.fpt-blockchain-lab.com
+  - host: monitoring.fpt-blockchain-lab.com
     http:
       paths:
       - path: /
@@ -35,3 +38,10 @@ spec:
             name: monitoring-grafana
             port:
               number: 3000
+      - path: /kibana
+        pathType: Prefix
+        backend:
+          service:
+            name: kibana-kibana
+            port:
+              number: 5601

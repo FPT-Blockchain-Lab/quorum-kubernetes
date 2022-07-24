@@ -92,9 +92,19 @@ After the checking succesfully executed, please follow this guide [link](https:/
 ```bash
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --version 1.3.0 --namespace longhorn-system --create-namespace --values ./values/longhorn.yml
+helm install longhorn longhorn/longhorn --version 1.3.0 --namespace admin --create-namespace --values ./values/longhorn.yml
 # To check the deployment succeeded, run
-kubectl -n longhorn-system get pod
+kubectl -n admin get pod
+```
+
+### _Install kubernetes-dashboard_
+
+```bash
+helm repo add k8s-dashboard https://kubernetes.github.io/dashboard
+helm repo update
+helm install kubernetes-dashboard --nk8s-dashboard/kubernetes-dashboard --version 5.7.0 --namespace admin
+# To check the deployment succeeded, run
+kubectl -n admin get pod
 ```
 
 ### _Spin up ELK for logs: (Optional but recommended)_

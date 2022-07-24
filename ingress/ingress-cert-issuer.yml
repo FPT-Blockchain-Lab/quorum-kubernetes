@@ -6,6 +6,7 @@ metadata:
 spec:
   acme:
     # The ACME server URL
+    # server: https://acme-staging-v02.api.letsencrypt.org/directory
     server: https://acme-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
     email: trmaphi@gmail.com
@@ -15,16 +16,14 @@ spec:
     solvers:
     - selector:
         dnsZones:
-        - longhorn-testnet.fpt-blockchain-lab.com
-        - monitoring-testnet.fpt-blockchain-lab.com
-        - testnet.fpt-blockchain-lab.com
+        - prod.fpt-blockchain-lab.com
       dns01:
         cnameStrategy: Follow
         cloudflare:
           email: trmaphi@gmail.com
           apiTokenSecretRef:
             name: cloudflare-api-token-secret
-            key: api-token
+            key: api-token         
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -34,24 +33,7 @@ metadata:
 spec:
   secretName: letsencrypt-prod-tls
   dnsNames:
-    - monitoring-testnet.fpt-blockchain-lab.com
-    - testnet.fpt-blockchain-lab.com
-  issuerRef:
-    name: letsencrypt-prod
-    # We can reference ClusterIssuers by changing the kind here.
-    # The default value is Issuer (i.e. a locally namespaced Issuer)
-    kind: ClusterIssuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: letsencrypt-prod-tls
-  namespace: longhorn-system
-spec:
-  secretName: letsencrypt-prod-tls
-  dnsNames:
-    - longhorn-testnet.fpt-blockchain-lab.com
+    - prod.fpt-blockchain-lab.com
   issuerRef:
     name: letsencrypt-prod
     # We can reference ClusterIssuers by changing the kind here.
