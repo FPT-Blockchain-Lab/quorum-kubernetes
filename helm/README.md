@@ -87,62 +87,45 @@ Firstly, running check requirements script for the cluster
 curl -sfL https://raw.githubusercontent.com/longhorn/longhorn/v1.3.0/scripts/environment_check.sh | bash -
 ```
 
-After the checking succesfully executed, please follow this guide [link](https://longhorn.io/docs/1.3.0/deploy/install/install-with-helm/)
+After the checking succesfully executed, please follow this guide [link](https://longhorn.io/docs/1.3.0/deploy/install/install-with-helm/). For the node dependencies requirements, please check this [link](https://longhorn.io/docs/1.3.0/deploy/install/#installation-requirements)
 
 ```bash
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --version 1.3.0 --namespace admin --create-namespace --values ./values/longhorn.yml
+helm upgrade --install longhorn longhorn/longhorn --version 1.3.0 --namespace admin --create-namespace --values ./values/longhorn.yml 
 # To check the deployment succeeded, run
-kubectl -n admin get pod
+kubectl -n admin get pod -w
 ```
 
-### _Install kubernetes-dashboard_
+### _Spin up prometheus-stack for metrics and loki for logs: (Optional but recommended)_
+
+Firstly, the loki values has `persistence.enabled: true`, to enable persistent logs.
+Secondly, uses charts from prometheus-community. Grafana by default already disable in `./values/prometheus-stack.yml`. Please configure this as per your requirements and policies. 
 
 ```bash
-helm repo add k8s-dashboard https://kubernetes.github.io/dashboard
-helm repo update
-helm install kubernetes-dashboard --nk8s-dashboard/kubernetes-dashboard --version 5.7.0 --namespace admin
-# To check the deployment succeeded, run
-kubectl -n admin get pod
-```
-
-### _Spin up ELK for logs: (Optional but recommended)_
-
-**NOTE:** this uses charts from Elastic - please configure this as per your requirements and policies
-
-```bash
-helm repo add elastic https://helm.elastic.co
-helm repo update
-# if on cloud
-helm install elasticsearch --version 7.17.1 elastic/elasticsearch --namespace quorum --create-namespace --values ./values/elasticsearch.yml
-# if local - set the replicas to 1
-helm install elasticsearch --version 7.17.1 elastic/elasticsearch --namespace quorum --create-namespace --values ./values/elasticsearch.yml --set replicas=1 --set minimumMasterNodes=1
-helm install kibana --version 7.17.1 elastic/kibana --namespace quorum --values ./values/kibana.yml
-helm install filebeat --version 7.17.1 elastic/filebeat  --namespace quorum --values ./values/filebeat.yml
-```
-
-Please also deploy the ingress (below) and the ingress rules to access kibana on path `http://<INGRESS_IP>/kibana`.
-Alternatively configure the kibana ingress settings in the [values.yml](./values/kibana.yml)
-
-Once you have kibana open, create a `filebeat` index pattern and logs should be available. Please configure this as
-per your requirements and policies
-
-### _Spin up prometheus-stack for metrics: (Optional but recommended)_
-
-**NOTE:** this uses charts from prometheus-community - please configure this as per your requirements and policies
-
-```bash
+helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-# NOTE: please refer to values/monitoring.yml to configure the alerts per your requirements ie slack, email etc
-helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=quorum --create-namespace --values ./values/monitoring.yml --atomic
+helm upgrade --install loki-stack grafana/loki-stack \
+    --version 2.6.5 \
+    --namespace=monitoring --create-namespace \
+    --values ./values/loki-stack.yml \
+    --set loki.fullnameOverride=loki,logstash.fullnameOverride=logstash-loki
+
+# NOTE: please refer to values/prometheus-stack.yml to configure the alerts per your requirements ie slack, email etc
+helm upgrade --install prometheus-stack prometheus-community/kube-prometheus-stack --version 34.10.0 --namespace=monitoring --create-namespace --values ./values/prometheus-stack.yml --atomic --debug
 ```
 
-Then in ./values/monitoring/, search for yaml path `grafana.adminPassword` change the value to your desired value.
+Install grafana support both Prometheus and Loki
 
 ```bash
-kubectl --namespace quorum apply -f  ./values/monitoring/
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+kubectl create secret generic admin-auth --from-literal=admin-user="${ADMIN_USER}" --from-literal=passwordKey="${ADMIN_PASSWORD}" -n monitoring 
+helm upgrade --install grafana grafana/grafana --version 6.32.7 --namespace=monitoring --create-namespace --values ./values/grafana.yml --atomic --debug
+
+### To get admin user password
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
 ### Install postgres cluster (not recommend, please use the hosted services)
@@ -302,30 +285,18 @@ Optionally deploy the ingress controller for the network and nodes like so:
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm upgrade --install ingress ingress-nginx \
-  --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx --create-namespace
-  --set controller.service.externalTrafficPolicy=Local
+helm upgrade --install ingress ingress-nginx/ingress-nginx \
+  --namespace admin --create-namespace \
+  --version 4.2.0 \
+  --values ./values/ingress-nginx.yml
 ```
 
 Once complete, view the IP address listed under the `Ingress` section if you're using the Kubernetes Dashboard
-or on the command line `kubectl -n quorum get services quorum-monitoring-ingress-ingress-nginx-controller`.
+or on the command line `kubectl get services -A`.
 
 Deploy RPC ingress
 ```
 kubectl apply -f ../ingress/ingress-rules-goquorum.yml
-```
- 
-Deploy Monitoring Ingress
-
-```
-kubectl apply -f ../ingress/ingress-rules-monitoring.yml
-```
-
-Deploy Longhorn Ingress
-
-```
-kubectl apply -f ../ingress/ingress-rules-longhorn.yml
 ```
 
 Those three command deploy the IngressClass at cluster scope, and 3 Ingress for the given namespace. This is required because TLS sercret must be avaiable in the same namespace. And, remember to view the host for the ingress with `kubectl get ingress -A`
