@@ -271,12 +271,12 @@ spec:
             cp {{ .Values.node.goquorum.keysPath }}/nodekey {{ .Values.node.goquorum.dataPath }}/geth/nodekey
             cp /config/static/static-nodes.json {{ .Values.node.goquorum.dataPath }}/geth/static-nodes.json
             
-            rm {{ .Values.node.goquorum.dataPath }}/permissioned-nodes.json
+            rm {{ .Values.node.goquorum.dataPath }}/permissioned-nodes.json >/dev/null 2>&1
           {{- if .Values.quorumFlags.permissioned }} 
             cp /config/static/static-nodes.json {{ .Values.node.goquorum.dataPath }}/permissioned-nodes.json
           {{- end }}
 
-            rm {{ .Values.node.goquorum.dataPath }}/permission-config.json
+            rm {{ .Values.node.goquorum.dataPath }}/permission-config.json >/dev/null 2>&1
           {{- if .Values.quorumFlags.enhancedPermissioned }}
             cp /config/static/static-nodes.json {{ .Values.node.goquorum.dataPath }}/permissioned-nodes.json
             cp /config/enhanced-permission/permission-config.json {{ .Values.node.goquorum.dataPath }}/permission-config.json

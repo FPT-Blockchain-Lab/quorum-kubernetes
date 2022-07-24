@@ -121,7 +121,7 @@ Install grafana support both Prometheus and Loki
 ```bash
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
-kubectl create secret generic admin-auth --from-literal=admin-user="${ADMIN_USER}" --from-literal=passwordKey="${ADMIN_PASSWORD}" -n monitoring 
+kubectl create secret generic admin-auth --from-literal=admin-user="${ADMIN_USER}" --from-literal=admin-password="${ADMIN_PASSWORD}" -n monitoring 
 helm upgrade --install grafana grafana/grafana --version 6.32.7 --namespace=monitoring --create-namespace --values ./values/grafana.yml --atomic --debug
 
 ### To get admin user password
@@ -227,13 +227,13 @@ helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reade
 ### Replace value name with the desired environments
 helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.test.yml --wait-for-jobs
 
-helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
-helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-3 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml & \
+helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml
 ```
 
 ### spin up a quorum and tessera node pair (optional)
@@ -274,6 +274,20 @@ helm upgrade --install validator-4 ./charts/goquorum-node --namespace quorum --v
 helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
 helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic && \
 helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
+```
+
+### _Using Cert Manager for Ingress: (Optional but recommnended)_
+
+***NOTE:** only necessary if ingress used
+```
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.8.2 \
+  --set installCRDs=true
 ```
 
 ### Ingress
@@ -319,20 +333,6 @@ If you've deployed the Ingress from the previous step, you can access the Quorum
 
 ```bash
 http://<INGRESS_HOST>/explorer
-```
-
-### _Using Cert Manager for Ingress: (Optional but recommnended)_
-
-***NOTE:** only necessary if ingress used
-```
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-helm install \
-  cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --version v1.8.2 \
-  --set installCRDs=true
 ```
 
 ### Once deployed, services are available as follows on the IP/ of the ingress controllers:
