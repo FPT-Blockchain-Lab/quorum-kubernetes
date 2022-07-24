@@ -231,7 +231,8 @@ helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reade
 ### _For GoQuorum:_
 
 ```bash
-helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.testnet.yml --wait-for-jobs
+### Replace value name with the desired environments
+helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.test.yml --wait-for-jobs
 
 helm upgrade --install validator-1 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
 helm upgrade --install validator-2 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic & \
