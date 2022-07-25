@@ -94,9 +94,8 @@ spec:
             - -c
           args:
             - |
-              VERSION=1.0.2
-              wget https://github.com/FPT-Blockchain-Lab/quorum-enhanced-permission-deployer/archive/refs/tags/$VERSION.zip
-              unzip $VERSION.zip
+              VERSION=1.0.2; curl -OL https://github.com/FPT-Blockchain-Lab/quorum-enhanced-permission-deployer/archive/refs/tags/$VERSION.tar.gz && tar -xvf $VERSION.tar.gz
+
               export FOLDER_PATH=$(pwd)/quorum-enhanced-permission-deployer-$VERSION
               cd $FOLDER_PATH && npm install
               node $FOLDER_PATH/deployer.js
@@ -112,57 +111,3 @@ spec:
 
               echo "Smart Contract permissions config"
               cat $FOLDER_PATH/permission-config.json
-
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: {{ include "goquorum-enhanced-permission.name" . }}-cleanup
-  labels:
-    app: {{ template "goquorum-enhanced-permission.name" . }}
-    chart: {{ template "goquorum-enhanced-permission.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    namespace: {{ .Release.Namespace }}
-    app.kubernetes.io/name: {{ include "goquorum-enhanced-permission.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    helm.sh/chart: {{ include "goquorum-enhanced-permission.chart" . }}
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    helm.sh/hook-weight: "0"
-    helm.sh/hook: "pre-delete"
-    helm.sh/hook-delete-policy: "hook-succeeded"
-spec:
-  backoffLimit: 3
-  completions: 1
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: {{ include "goquorum-enhanced-permission.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-    spec:
-      serviceAccountName: {{ include "goquorum-enhanced-permission.name" . }}-sa
-      restartPolicy: "Never"
-      containers:
-        - name: delete-enhanced-permission
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          securityContext:
-            runAsUser: 0
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /bin/bash
-            - -c
-          args:
-            - |
-
-              echo "Deleting genesis configmap in k8s ..."
-              kubectl get configmap --namespace {{ .Release.Namespace }} goquorum-enhanced-permission-config > /dev/null 2>&1
-              if [ $? -ne 0 ]; then
-                kubectl create configmap --namespace {{ .Release.Namespace }} goquorum-enhanced-permission-config --from-file=permission-config.json=$FOLDER_PATH/permission-config.json
-              fi
-
-              
-
-
-
