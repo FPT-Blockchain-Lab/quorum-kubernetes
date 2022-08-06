@@ -277,6 +277,17 @@ helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --v
 helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 ```
 
+### External Validator
+
+Create 3 configmap
+goquorum-genesis
+goquorum-enhanced-permission-config
+goquorum-peers
+
+Update permission contract
+
+helm upgrade --install external-validator-1 ./charts/goquorum-node --namespace quorum --values ./values/goquorum-external-validator.yml
+
 ### _Using Cert Manager for Ingress: (Optional but recommnended)_
 
 ***NOTE:** only necessary if ingress used
