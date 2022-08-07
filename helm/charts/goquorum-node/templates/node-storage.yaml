@@ -50,7 +50,7 @@ parameters:
 #   gidRangeEnd: "2000" # optional
 #   basePath: "/dynamic_provisioning" # optional
 
-{{- else }}
+{{- else if eq .Values.cluster.provider "longhorn" }}
 
 ---
 kind: StorageClass
@@ -79,5 +79,25 @@ parameters:
   #     "isGroup":false,
   #   }
   #  ]'
+
+{{- else }}
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "goquorum-node.fullname" . }}-storage
+  namespace: {{ .Release.Namespace }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ include "goquorum-node.fullname" . }}-storage
+  capacity:
+    storage: "{{ .Values.storage.sizeLimit }}"
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/{{ include "goquorum-node.fullname" . }}"
+
 {{- end }}
 

@@ -279,14 +279,22 @@ helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --v
 
 ### External Validator
 
-Create 3 configmap
+Create 4 configmap
+
+```
 goquorum-genesis
 goquorum-enhanced-permission-config
 goquorum-peers
+goquorum-networkid
+```
 
-Update permission contract
+Add new node to permission contract
 
-helm upgrade --install external-validator-1 ./charts/goquorum-node --namespace quorum --values ./values/goquorum-external-validator.yml
+```
+quorumPermission.addNode("ADMINORG", "enode://nodekey@nodeip:nodeport?discport=0", {from: eth.accounts[0]})
+```
+
+helm install external-validator-1 ./charts/goquorum-node --namespace quorum --values ./values/goquorum-external-validator.yml
 
 ### _Using Cert Manager for Ingress: (Optional but recommnended)_
 
