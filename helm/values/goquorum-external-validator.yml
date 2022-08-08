@@ -38,4 +38,5 @@
         cpuRequest: 0.1
         memLimit: "2G"
         memRequest: "1G"
+      serviceType: NodePort
   
