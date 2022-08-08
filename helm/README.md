@@ -279,19 +279,34 @@ helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --v
 
 ### External Validator
 
-Create 4 configmap
+#### FPT Blockchain Lab cluster
+
+NodePort all validator services to connect from external cluster
+
+Export 4 configmap
+
+```
+goquorum-genesis
+goquorum-enhanced-permission-config
+goquorum-peers (with cluster public ip & port from NodePort)
+goquorum-networkid
+```
+
+Add new external node to permission contract
+
+```
+quorumPermission.addNode("ADMINORG", "enode://nodekey@nodeip:nodeport?discport=0", {from: eth.accounts[0]})
+```
+
+#### External Validator cluster
+
+Import 4 configmaps
 
 ```
 goquorum-genesis
 goquorum-enhanced-permission-config
 goquorum-peers
 goquorum-networkid
-```
-
-Add new node to permission contract
-
-```
-quorumPermission.addNode("ADMINORG", "enode://nodekey@nodeip:nodeport?discport=0", {from: eth.accounts[0]})
 ```
 
 helm install external-validator-1 ./charts/goquorum-node --namespace quorum --values ./values/goquorum-external-validator.yml
