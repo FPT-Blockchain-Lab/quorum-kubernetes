@@ -27,6 +27,7 @@ azure:
   subscriptionId: azure-subscriptionId
 
 storage:
+  storageClass: "quorum-node-storage"
   sizeLimit: "5Gi"
   pvcSizeLimit: "5Gi"
   # NOTE: when you set this to Retain, the volume WILL persist after the chart is delete and you need to manually delete it
@@ -54,6 +55,7 @@ node:
     miner:
       threads: 1
       blockPeriod: 5
+    serviceType: ClusterIP
     p2p:
       enabled: true
       addr: "0.0.0.0"

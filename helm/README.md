@@ -223,6 +223,38 @@ helm install rpc-1 ./charts/besu-node --namespace quorum --values ./values/reade
 
 ### _For GoQuorum:_
 
+Create storageClass with name `quorum-node-storage` and namespace `quorum`. This storage class here use longhorn.
+```
+cat <<EOF | kubectl apply -f -
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: quorum-node-storage
+  namespace: quorum
+provisioner: driver.longhorn.io
+reclaimPolicy: "Delete"
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  numberOfReplicas: "1"
+  dataLocality: "best-effort"
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  #  diskSelector: "ssd,fast"
+  #  nodeSelector: "storage,fast"
+  #  recurringJobSelector: '[
+  #   {
+  #     "name":"snap",
+  #     "isGroup":true,
+  #   },
+  #   {
+  #     "name":"backup",
+  #     "isGroup":false,
+  #   }
+  #  ]'
+EOF
+```
+
 ```bash
 ### Replace value name with the desired environments
 helm install genesis ./charts/goquorum-genesis --namespace quorum --create-namespace --values ./values/genesis-goquorum.test.yml --wait-for-jobs
@@ -276,6 +308,40 @@ helm upgrade --install validator-5 ./charts/goquorum-node --namespace quorum --v
 helm upgrade --install validator-6 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 helm upgrade --install validator-7 ./charts/goquorum-node --namespace quorum --values ./values/validator.yml --atomic
 ```
+
+### External Validator
+
+#### FPT Blockchain Lab cluster
+
+NodePort all validator services to connect from external cluster
+
+Export 4 configmap
+
+```
+goquorum-genesis
+goquorum-enhanced-permission-config
+goquorum-peers (with cluster public ip & port from NodePort)
+goquorum-networkid
+```
+
+Add new external node to permission contract
+
+```
+quorumPermission.addNode("ADMINORG", "enode://nodekey@nodeip:nodeport?discport=0", {from: eth.accounts[0]})
+```
+
+#### External Validator cluster
+
+Import 4 configmaps
+
+```
+goquorum-genesis
+goquorum-enhanced-permission-config
+goquorum-peers
+goquorum-networkid
+```
+
+helm install external-validator-1 ./charts/goquorum-node --namespace quorum --values ./values/goquorum-external-validator.yml
 
 ### _Using Cert Manager for Ingress: (Optional but recommnended)_
 
